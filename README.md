@@ -123,4 +123,5 @@ home.packages = [ inputs.opennow.packages.${pkgs.stdenv.hostPlatform.system}.def
 
 - The package wraps the upstream AppImage with `appimageTools.wrapType2`. It does not build OpenNOW from source.
 - VA-API, VDPAU, PipeWire and PulseAudio libraries are included in the FHS environment for hardware video decoding and audio. Hardware decoding also needs `hardware.graphics.enable = true;` (it is on by default on most desktop setups).
+- OpenNOW plays audio through `pw-cat` with a hardcoded 10 ms latency, which underruns and can silence audio for the rest of a session. The flake wraps `pw-cat` to use 40 ms instead and names the stream "OpenNOW". To use a different value, set `OPENNOW_PW_LATENCY` (e.g. `OPENNOW_PW_LATENCY=60ms opennow`).
 - The `opennow://` URL handler from upstream's desktop entry is installed too.
