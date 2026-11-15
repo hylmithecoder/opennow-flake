@@ -23,7 +23,7 @@ let
     inherit (source) hash;
   };
 
-  appimageContents = appimageTools.extractType2 { inherit pname version src; };
+  appimageContents = appimageTools.extract { inherit pname version src; };
 in
 appimageTools.wrapType2 {
   inherit pname version src;
@@ -33,6 +33,7 @@ appimageTools.wrapType2 {
     libvdpau
     pipewire
     libpulseaudio
+    libgpg-error # needed by the bundled libgcrypt
   ];
 
   extraInstallCommands = ''
