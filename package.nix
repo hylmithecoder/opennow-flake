@@ -24,6 +24,26 @@ let
   };
 
   appimageContents = appimageTools.extract { inherit pname version src; };
+
+  # OpenNOW plays game audio by piping raw PCM into `/usr/bin/pw-cat --latency 10ms`.
+  # 10ms is too tight (especially behind EasyEffects): PipeWire underruns, and
+  # OpenNOW's jitter buffer can then stall and drop all audio for the rest of the
+  # session. This wrapper raises the latency (override with OPENNOW_PW_LATENCY)
+  # and names the stream "OpenNOW" so it can be identified/excluded in mixers.
+  pwCatWrapper = pkgs: lib.hiPrio (pkgs.writeShellScriptBin "pw-cat" ''
+    args=()
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --latency) args+=(--latency "''${OPENNOW_PW_LATENCY:-40ms}"); shift 2; continue ;;
+        --latency=*) args+=("--latency=''${OPENNOW_PW_LATENCY:-40ms}") ;;
+        *) args+=("$1") ;;
+      esac
+      shift
+    done
+    exec ${pkgs.pipewire}/bin/pw-cat \
+      -P '{ application.name = "OpenNOW", node.description = "OpenNOW", media.name = "OpenNOW game audio" }' \
+      "''${args[@]}"
+  '');
 in
 appimageTools.wrapType2 {
   inherit pname version src;
@@ -34,6 +54,7 @@ appimageTools.wrapType2 {
     pipewire
     libpulseaudio
     libgpg-error # needed by the bundled libgcrypt
+    (pwCatWrapper pkgs)
   ];
 
   extraInstallCommands = ''
