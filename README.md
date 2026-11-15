@@ -61,10 +61,38 @@ environment.systemPackages = [ pkgs.opennow ];
 environment.systemPackages = [ opennow.packages.${pkgs.stdenv.hostPlatform.system}.default ];
 ```
 
-**Home Manager:**
+## Install with Home Manager
+
+In your Home Manager flake (e.g. `~/.config/home-manager/flake.nix`):
 
 ```nix
-home.packages = [ opennow.packages.${pkgs.stdenv.hostPlatform.system}.default ];
+inputs.opennow.url = "github:hylmithecoder/opennow-flake";
+
+# in homeManagerConfiguration
+modules = [
+  opennow.homeManagerModules.default
+  ./home.nix
+];
+```
+
+Then in `home.nix`:
+
+```nix
+programs.opennow.enable = true;
+# optional: programs.opennow.package = <your own build>;
+```
+
+Apply it:
+
+```sh
+nix flake update opennow
+home-manager switch --flake .#<user>
+```
+
+Without the module, you can also add the package directly:
+
+```nix
+home.packages = [ inputs.opennow.packages.${pkgs.stdenv.hostPlatform.system}.default ];
 ```
 
 ## Flake outputs
@@ -75,6 +103,7 @@ home.packages = [ opennow.packages.${pkgs.stdenv.hostPlatform.system}.default ];
 | `apps.<system>.opennow` / `default` | For `nix run` |
 | `overlays.default` | Adds `opennow` to `pkgs` |
 | `nixosModules.default` | Applies the overlay and installs OpenNOW system-wide |
+| `homeManagerModules.default` | Adds `programs.opennow.enable` / `.package` for Home Manager |
 
 ## Updating to a new release
 

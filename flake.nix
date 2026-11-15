@@ -30,5 +30,23 @@
         nixpkgs.overlays = [ self.overlays.default ];
         environment.systemPackages = [ pkgs.opennow ];
       };
+
+      homeManagerModules.default = { config, lib, pkgs, ... }:
+        let cfg = config.programs.opennow;
+        in {
+          options.programs.opennow = {
+            enable = lib.mkEnableOption "OpenNOW, an open-source GeForce NOW client";
+            package = lib.mkOption {
+              type = lib.types.package;
+              default = pkgs.callPackage ./package.nix { };
+              defaultText = lib.literalExpression "opennow-flake's package";
+              description = "The OpenNOW package to install.";
+            };
+          };
+
+          config = lib.mkIf cfg.enable {
+            home.packages = [ cfg.package ];
+          };
+        };
     };
 }
